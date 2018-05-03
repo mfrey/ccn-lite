@@ -561,7 +561,7 @@ char*
 ccnl_prefix_to_str_detailed(struct ccnl_prefix_s *pr, int ccntlv_skip, int escape_components, int call_slash,
                             char *buf, size_t buflen) {
     size_t len = 0, i, j;
-    __asm__("bkpt #1")
+    __asm__("bkpt #1");
     int result;
     (void)i;
     (void)j;
