@@ -61,6 +61,7 @@ ccnl_is_local_addr(sockunion *su)
 char*
 ccnl_addr2ascii(sockunion *su)
 {
+    __asm__("bkpt #2");
 #ifdef USE_UNIXSOCKET
     static char result[256];
 #else
