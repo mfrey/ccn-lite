@@ -219,6 +219,7 @@ int
 ccnl_fwd_handleInterest(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
                         struct ccnl_pkt_s **pkt, cMatchFct cMatch)
 {
+    __asm__("bkpt #3");
     struct ccnl_interest_s *i;
     struct ccnl_content_s *c;
     int propagate= 0;
