@@ -1,10 +1,8 @@
 // base64.c
 // from stackoverflow.com, user RYYST
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdint.h>
+
+#include "base64.h"
 
 static char
 encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
@@ -102,4 +100,3 @@ base64_cleanup(void) {
     free(decoding_table);
 }
 
-// eof
