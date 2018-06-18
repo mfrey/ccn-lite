@@ -35,8 +35,12 @@ debug_malloc(size_t s, const char *fn, int lno, char *tstamp)
 #endif
 {
     size_t size;
+#ifndef BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
     /** check if the operation can be performed without causing an integer overflow */
     if (!INT_ADD_OVERFLOW(s, sizeof(struct mhdr), &size)) {
+#else
+    size = s + sizeof(struct(mhdr));
+#endif
         struct mhdr *h = (struct mhdr *) malloc(size); 
         /** memory allocation failed */
         if (!h) {
@@ -55,8 +59,12 @@ debug_malloc(size_t s, const char *fn, int lno, char *tstamp)
         size_t new_timestamp_size;
         /** determine size of the timestamp */
         size_t timestamp_size = strlen(tstamp);
+#ifndef BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
         /** check if +1 can safely be added */
         if (!INT_ADD_OVERFLOW(timestamp_size, 1, &new_timestamp_size)) {
+#else
+        new_timestamp_size = timestamp_size + 1;
+#endif
             char *timestamp = malloc(new_timestamp_size); 
 
             if (timestamp) {
@@ -68,14 +76,19 @@ debug_malloc(size_t s, const char *fn, int lno, char *tstamp)
                 return NULL;
             }
         /** potential integer overflow detected, apparently tstamp was 'garbage'  */
+#ifndef BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
         } else {
             /** free previously allocated memory */
             free(h);
             return NULL;
         }
-#endif 
+#endif
+
+#endif  // CCNL_ARDUINO
         return ((unsigned char *)h) + sizeof(struct mhdr);
+#ifndef BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
     }
+#endif 
 
     return NULL;
 }
@@ -90,14 +103,20 @@ debug_calloc(size_t n, size_t s, const char *fn, int lno, char *tstamp)
 {
     size_t size;
     void *p = NULL;
+#ifndef BUILTIN_INT_MULT_OVERFLOW_DETECTION_UNAVAILABLE
     /** can the operation be performed without causing an integer overflow */
     if (!INT_MULT_OVERFLOW(n, s, &size)) {
+#else
+    size = n * s;
+#endif  
          p = debug_malloc(size, fn, lno, tstamp);
 
          if (p) {
             memset(p, 0, n*s);
          }
+#ifndef BUILTIN_INT_MULT_OVERFLOW_DETECTION_UNAVAILABLE
     }
+#endif  
 
     return p;
 }
@@ -123,6 +142,7 @@ debug_realloc(void *p, size_t s, const char *fn, int lno)
 {
     size_t size;
     struct mhdr *h = (struct mhdr *) (((unsigned char *)p) - sizeof(struct mhdr));
+#ifndef BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
     /** 
      * check if the add operation in the realloc/malloc call below would cause an 
      * integer overflow 
@@ -130,6 +150,7 @@ debug_realloc(void *p, size_t s, const char *fn, int lno)
     if (INT_ADD_OVERFLOW(s, sizeof(struct mhdr), &size)) {
         return NULL;
     }
+#endif 
 
     if (p) {
         if (debug_unlink(h)) {
@@ -138,6 +159,9 @@ debug_realloc(void *p, size_t s, const char *fn, int lno)
                     timestamp(), h->fname, h->lineno, fn, lno);
             return NULL;
         }
+#ifdef BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
+        size = s + sizeof(struct mhdr);
+#endif
 
         h = (struct mhdr *) realloc(h, size);
 
@@ -173,14 +197,21 @@ debug_strdup(const char *s, const char *fn, int lno, char *tstamp)
     if (s) {
         size_t size;
         size_t str_size = strlen(s);
+#ifndef BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
         if (!INT_ADD_OVERFLOW(str_size, 1, &size)) {
+#else
+        size = str_size + 1;
+
+#endif
             cp = (char*) debug_malloc(size, fn, lno, tstamp);
              
             if (cp) {
                 strcpy(cp, s);
             }
         }
+#ifndef BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
     }
+#endif
 
     return cp;
 }
