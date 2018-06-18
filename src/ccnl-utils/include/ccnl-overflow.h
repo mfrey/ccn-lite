@@ -50,7 +50,7 @@
 #define INT_MULT_OVERFLOW(a, b, c) \
    __builtin_mul_overflow (a, b, c)
 #else
-#error "can't use builtin __builtin_mul_overflow on your system"
+#define BUILTIN_INT_MULT_OVERFLOW_DETECTION_UNAVAILABLE (0x1u)
 #endif
 
 
@@ -71,7 +71,7 @@
 #define INT_ADD_OVERFLOW(a, b, c) \
    __builtin_add_overflow (a, b, c)
 #else
-#error "can't use builtin __builtin_add_overflow on your system"
+#define BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE (0x1u)
 #endif
 
 #endif 
