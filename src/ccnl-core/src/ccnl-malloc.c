@@ -34,9 +34,10 @@ void*
 debug_malloc(size_t s, const char *fn, int lno, char *tstamp)
 #endif
 {
+    size_t size;
     /** check if the operation can be performed without causing an integer overflow */
-    if (!INT_ADD_OVERFLOW_P(s, sizeof(struct mhdr))) {
-        struct mhdr *h = (struct mhdr *) malloc(s + sizeof(struct mhdr));
+    if (!INT_ADD_OVERFLOW(s, sizeof(struct mhdr), &size)) {
+        struct mhdr *h = (struct mhdr *) malloc(size); 
         /** memory allocation failed */
         if (!h) {
             return NULL;
@@ -51,11 +52,12 @@ debug_malloc(size_t s, const char *fn, int lno, char *tstamp)
 #ifdef CCNL_ARDUINO
         h->tstamp = tstamp;
 #else
+        size_t new_timestamp_size;
         /** determine size of the timestamp */
         size_t timestamp_size = strlen(tstamp);
         /** check if +1 can safely be added */
-        if (!INT_ADD_OVERFLOW_P(timestamp_size, 1)) {
-            char *timestamp = malloc(timestamp_size + 1); 
+        if (!INT_ADD_OVERFLOW(timestamp_size, 1, &new_timestamp_size)) {
+            char *timestamp = malloc(new_timestamp_size); 
 
             if (timestamp) {
                 h->tstamp = strcpy(timestamp, tstamp); 
@@ -86,10 +88,11 @@ void*
 debug_calloc(size_t n, size_t s, const char *fn, int lno, char *tstamp)
 #endif
 {
+    size_t size;
     void *p = NULL;
     /** can the operation be performed without causing an integer overflow */
-    if (!INT_MULT_OVERFLOW_P(n, s)) {
-         p = debug_malloc(n * s, fn, lno, tstamp);
+    if (!INT_MULT_OVERFLOW(n, s, &size)) {
+         p = debug_malloc(size, fn, lno, tstamp);
 
          if (p) {
             memset(p, 0, n*s);
@@ -118,12 +121,13 @@ debug_unlink(struct mhdr *hdr)
 void*
 debug_realloc(void *p, size_t s, const char *fn, int lno)
 {
+    size_t size;
     struct mhdr *h = (struct mhdr *) (((unsigned char *)p) - sizeof(struct mhdr));
     /** 
      * check if the add operation in the realloc/malloc call below would cause an 
      * integer overflow 
      */
-    if (INT_ADD_OVERFLOW_P(s, sizeof(struct mhdr))) {
+    if (INT_ADD_OVERFLOW(s, sizeof(struct mhdr), &size)) {
         return NULL;
     }
 
@@ -135,13 +139,13 @@ debug_realloc(void *p, size_t s, const char *fn, int lno)
             return NULL;
         }
 
-        h = (struct mhdr *) realloc(h, s+sizeof(struct mhdr));
+        h = (struct mhdr *) realloc(h, size);
 
         if (!h) {
             return NULL;
         }
     } else {
-        h = (struct mhdr *) malloc(s+sizeof(struct mhdr));
+        h = (struct mhdr *) malloc(size);
 
         if (!h) {
             return NULL;
@@ -167,9 +171,10 @@ debug_strdup(const char *s, const char *fn, int lno, char *tstamp)
     char *cp = NULL;
 
     if (s) {
+        size_t size;
         size_t str_size = strlen(s);
-        if (!INT_ADD_OVERFLOW_P(str_size, 1)) {
-            cp = (char*) debug_malloc(str_size +1, fn, lno, tstamp);
+        if (!INT_ADD_OVERFLOW(str_size, 1, &size)) {
+            cp = (char*) debug_malloc(size, fn, lno, tstamp);
              
             if (cp) {
                 strcpy(cp, s);

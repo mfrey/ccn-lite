@@ -23,6 +23,17 @@
 #define CCNL_OVERFLOW_H
 
 /**
+ * @brief Checks if a __builtin* feature is availbale or not
+ */
+#ifdef __clang__
+    #define HAS(...) __has_builtin(__VA_ARGS__)
+#elif defined __GNUC__ 
+    #define HAS(...) 1
+#else
+    #define HAS(...) 0
+#endif
+
+/**
  * @brief Checks if two integers can be multiplied without causing an 
  * integer overflow.
  * 
@@ -31,11 +42,17 @@
  *
  * @param[in] a The first operand of the operation
  * @param[in] b The second operand of the operation
+ * @param[in] c The result of the operation
  *
  * @return True if an overflow would be triggered, false otherwise
  */
-#define INT_MULT_OVERFLOW_P(a, b) \
-   __builtin_mul_overflow_p (a, b, (__typeof__ ((a) * (b))) 0)
+#if HAS(__builtin_mul_overflow)
+#define INT_MULT_OVERFLOW(a, b, c) \
+   __builtin_mul_overflow (a, b, c)
+#else
+#error "can't use builtin __builtin_mul_overflow on your system"
+#endif
+
 
 /**
  * @brief Checks if two integers can be added without causing an 
@@ -46,11 +63,16 @@
  *
  * @param[in] a The first operand of the operation
  * @param[in] b The second operand of the operation
+ * @param[in] c The result of the operation
  *
  * @return True if an overflow would be triggered, false otherwise
  */
-#define INT_ADD_OVERFLOW_P(a, b) \
-   __builtin_add_overflow_p (a, b, (__typeof__ ((a) + (b))) 0)
+#if HAS(__builtin_add_overflow)
+#define INT_ADD_OVERFLOW(a, b, c) \
+   __builtin_add_overflow (a, b, c)
+#else
+#error "can't use builtin __builtin_add_overflow on your system"
+#endif
 
 #endif 
 /** @} */
