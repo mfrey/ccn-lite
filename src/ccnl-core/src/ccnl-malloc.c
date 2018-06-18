@@ -21,6 +21,7 @@
  */
 #include "ccnl-malloc.h"
 #include "ccnl-logging.h"
+#include "ccnl-overflow.h"
 
 
 #ifdef USE_DEBUG_MALLOC
@@ -33,27 +34,48 @@ void*
 debug_malloc(size_t s, const char *fn, int lno, char *tstamp)
 #endif
 {
-    struct mhdr *h = (struct mhdr *) malloc(s + sizeof(struct mhdr));
+    /** check if the operation can be performed without causing an integer overflow */
+    if (!INT_ADD_OVERFLOW_P(s, sizeof(struct mhdr))) {
+        struct mhdr *h = (struct mhdr *) malloc(s + sizeof(struct mhdr));
+        /** memory allocation failed */
+        if (!h) {
+            return NULL;
+        }
 
-    if (!h)
-        return NULL;
-    h->next = mem;
-    mem = h;
-    h->fname = (char *) fn;
-    h->lineno = lno;
-    h->size = s;
+        h->next = mem;
+        mem = h;
+        h->fname = (char *) fn;
+        h->lineno = lno;
+        h->size = s;
+
 #ifdef CCNL_ARDUINO
-    h->tstamp = tstamp;
+        h->tstamp = tstamp;
 #else
-    //h->tstamp = strdup(tstamp);
-    h->tstamp = strcpy( malloc( strlen(tstamp)+1), tstamp );
-#endif
-    /*
-    if (s == 32) CONSOLE("+++ s=%d %p at %s:%d\n", s,
-                         (void*)(((unsigned char *)h) + sizeof(struct mhdr)),
-                         (char*) fn, lno);
-    */
-    return ((unsigned char *)h) + sizeof(struct mhdr);
+        /** determine size of the timestamp */
+        size_t timestamp_size = strlen(tstamp);
+        /** check if +1 can safely be added */
+        if (!INT_ADD_OVERFLOW_P(timestamp_size, 1)) {
+            char *timestamp = malloc(timestamp_size + 1); 
+
+            if (timestamp) {
+                h->tstamp = strcpy(timestamp, tstamp); 
+            /** allocating the timestamp failed */
+            } else { 
+                /** free previously allocated memory */
+                free(h);
+                return NULL;
+            }
+        /** potential integer overflow detected, apparently tstamp was 'garbage'  */
+        } else {
+            /** free previously allocated memory */
+            free(h);
+            return NULL;
+        }
+#endif 
+        return ((unsigned char *)h) + sizeof(struct mhdr);
+    }
+
+    return NULL;
 }
 
 #ifdef CCNL_ARDUINO
@@ -64,10 +86,16 @@ void*
 debug_calloc(size_t n, size_t s, const char *fn, int lno, char *tstamp)
 #endif
 {
-    /** TODO: potential integer overflow by n * z operation */
-    void *p = debug_malloc(n * s, fn, lno, tstamp);
-    if (p)
-        memset(p, 0, n*s);
+    void *p = NULL;
+    /** can the operation be performed without causing an integer overflow */
+    if (!INT_MULT_OVERFLOW_P(n, s)) {
+         p = debug_malloc(n * s, fn, lno, tstamp);
+
+         if (p) {
+            memset(p, 0, n*s);
+         }
+    }
+
     return p;
 }
 
@@ -91,6 +119,13 @@ void*
 debug_realloc(void *p, size_t s, const char *fn, int lno)
 {
     struct mhdr *h = (struct mhdr *) (((unsigned char *)p) - sizeof(struct mhdr));
+    /** 
+     * check if the add operation in the realloc/malloc call below would cause an 
+     * integer overflow 
+     */
+    if (INT_ADD_OVERFLOW_P(s, sizeof(struct mhdr))) {
+        return NULL;
+    }
 
     if (p) {
         if (debug_unlink(h)) {
@@ -99,11 +134,20 @@ debug_realloc(void *p, size_t s, const char *fn, int lno)
                     timestamp(), h->fname, h->lineno, fn, lno);
             return NULL;
         }
+
         h = (struct mhdr *) realloc(h, s+sizeof(struct mhdr));
-        if (!h)
+
+        if (!h) {
             return NULL;
-    } else
+        }
+    } else {
         h = (struct mhdr *) malloc(s+sizeof(struct mhdr));
+
+        if (!h) {
+            return NULL;
+        }
+    }
+
     h->fname = (char *) fn;
     h->lineno = lno;
     h->size = s;
@@ -120,13 +164,19 @@ void*
 debug_strdup(const char *s, const char *fn, int lno, char *tstamp)
 #endif
 {
-    char *cp;
+    char *cp = NULL;
 
-    if (!s)
-        return NULL;
-    cp = (char*) debug_malloc(strlen(s)+1, fn, lno, tstamp);
-    if (cp)
-        strcpy(cp, s);
+    if (s) {
+        size_t str_size = strlen(s);
+        if (!INT_ADD_OVERFLOW_P(str_size, 1)) {
+            cp = (char*) debug_malloc(str_size +1, fn, lno, tstamp);
+             
+            if (cp) {
+                strcpy(cp, s);
+            }
+        }
+    }
+
     return cp;
 }
 
