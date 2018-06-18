@@ -20,7 +20,7 @@ if (BUILD_TESTING)
         get_filename_component(TEST_NAME ${TESTFILE} NAME_WE)
 
         add_executable(${TEST_NAME} "test/${TEST_NAME}.c")
-        target_link_libraries(${TEST_NAME} ccnl-core ccnl-pkt ccnl-fwd ccnl-unix ${OPENSSL_LIBRARIES})
+        target_link_libraries(${TEST_NAME} ccnl-core ccnl-pkt ccnl-fwd ccnl-unix common ${OPENSSL_LIBRARIES})
         add_test(NAME ${TEST_NAME} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME} 0)
     endforeach ()
 

@@ -33,6 +33,7 @@
     #define HAS(...) 0
 #endif
 
+#if HAS(__builtin_mul_overflow)
 /**
  * @brief Checks if two integers can be multiplied without causing an 
  * integer overflow.
@@ -46,14 +47,17 @@
  *
  * @return True if an overflow would be triggered, false otherwise
  */
-#if HAS(__builtin_mul_overflow)
 #define INT_MULT_OVERFLOW(a, b, c) \
    __builtin_mul_overflow (a, b, c)
 #else
+/**
+ * @brief Integer overflow detection for multiplications s not available
+ */
 #define BUILTIN_INT_MULT_OVERFLOW_DETECTION_UNAVAILABLE (0x1u)
 #endif
 
 
+#if HAS(__builtin_add_overflow)
 /**
  * @brief Checks if two integers can be added without causing an 
  * integer overflow.
@@ -67,10 +71,12 @@
  *
  * @return True if an overflow would be triggered, false otherwise
  */
-#if HAS(__builtin_add_overflow)
 #define INT_ADD_OVERFLOW(a, b, c) \
    __builtin_add_overflow (a, b, c)
 #else
+/**
+ * @brief Integer overflow detection for add operations is not available
+ */
 #define BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE (0x1u)
 #endif
 
