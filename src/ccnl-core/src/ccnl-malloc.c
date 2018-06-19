@@ -39,7 +39,7 @@ debug_malloc(size_t s, const char *fn, int lno, char *tstamp)
     /** check if the operation can be performed without causing an integer overflow */
     if (!INT_ADD_OVERFLOW(s, sizeof(struct mhdr), &size)) {
 #else
-    size = s + sizeof(struct(mhdr));
+    size = s + sizeof(struct mhdr);
 #endif
         struct mhdr *h = (struct mhdr *) malloc(size); 
         /** memory allocation failed */
@@ -150,7 +150,9 @@ debug_realloc(void *p, size_t s, const char *fn, int lno)
     if (INT_ADD_OVERFLOW(s, sizeof(struct mhdr), &size)) {
         return NULL;
     }
-#endif 
+#else 
+    size = s + sizeof(struct mhdr);
+#endif
 
     if (p) {
         if (debug_unlink(h)) {
@@ -159,9 +161,6 @@ debug_realloc(void *p, size_t s, const char *fn, int lno)
                     timestamp(), h->fname, h->lineno, fn, lno);
             return NULL;
         }
-#ifdef BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
-        size = s + sizeof(struct mhdr);
-#endif
 
         h = (struct mhdr *) realloc(h, size);
 
