@@ -27,8 +27,12 @@
  */
 #ifdef __clang__
     #define HAS(...) __has_builtin(__VA_ARGS__)
-#elif defined __GNUC__ 
+#elif defined __GNUC__
+    #ifdef __GNUC__ > 4
     #define HAS(...) 1
+    #else
+    #define HAS(...) 0
+    #endif
 #else
     #define HAS(...) 0
 #endif
