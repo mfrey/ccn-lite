@@ -5,7 +5,7 @@
  
 #include "ccnl-interest.h"
  
-void test1()
+void test1(void **state)
 {
   int result = 0;
   assert_int_equal(result, 0);
@@ -13,9 +13,9 @@ void test1()
  
 int main(void)
 {
-  const UnitTest tests[] = {
-    unit_test(test1),
+  const struct CMUnitTest tests[] = {
+    cmocka_unit_test(test1),
   };
  
-  return run_tests(tests);
+  return cmocka_run_group_tests_name("core: interest tests", tests, NULL, NULL);
 }

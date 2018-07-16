@@ -5,7 +5,7 @@
  
 #include "ccnl-core.h"
  
-void test_prefix_to_path()
+void test_prefix_to_path(void **state)
 {
     char *result = "/path/to/data";
     struct ccnl_prefix_s *p = ccnl_malloc(sizeof(struct ccnl_prefix_s));
@@ -24,7 +24,7 @@ void test_prefix_to_path()
     ccnl_free(p);
 }
 
-void test_uri_to_prefix(){
+void test_uri_to_prefix(void **state){
     int uri_to_prefix_suite = 0;
     char *cmpstr = ccnl_malloc(100);
     char *c = ccnl_malloc(100);
@@ -37,7 +37,7 @@ void test_uri_to_prefix(){
     ccnl_prefix_free(prefix);
 }
 
-void test_append_to_prefix(){
+void test_append_to_prefix(void **state){
     int uri_to_prefix_suite = 0;
     char *cmpstr = ccnl_malloc(100);
     char *c = ccnl_malloc(100);
@@ -54,7 +54,7 @@ void test_append_to_prefix(){
     ccnl_free(cmpstr);
 }	
 
-void test_prefix_exact_match()
+void test_prefix_exact_match(void **state)
 {
     int prefix_cmp_suite = 0;
     char *c1 = ccnl_malloc(100);
@@ -72,7 +72,7 @@ void test_prefix_exact_match()
     assert_int_equal(0, res);
 }
 
-void test_prefix_no_exact_match()
+void test_prefix_no_exact_match(void **state)
 {
     int prefix_cmp_suite = 0;
     char *c1 = ccnl_malloc(100);
@@ -90,7 +90,7 @@ void test_prefix_no_exact_match()
     assert_int_equal(-1, res);
 }
 
-void test_prefix_longest_match()
+void test_prefix_longest_match(void **state)
 {
     int prefix_cmp_suite = 0;
     char *c1 = ccnl_malloc(100);
@@ -108,7 +108,7 @@ void test_prefix_longest_match()
     assert_int_equal(3, res);
 }
 
-void test_prefix_no_longest_match()
+void test_prefix_no_longest_match(void **state)
 {
     int prefix_cmp_suite = 0;
     char *c1 = ccnl_malloc(100);
@@ -127,15 +127,15 @@ void test_prefix_no_longest_match()
 
 int main(void)
 {
-  const UnitTest tests[] = {
-    unit_test(test_prefix_to_path),
-    unit_test(test_uri_to_prefix),
-    unit_test(test_append_to_prefix),
-    unit_test(test_prefix_exact_match),
-    unit_test(test_prefix_no_exact_match),
-    unit_test(test_prefix_longest_match),
-    unit_test(test_prefix_no_longest_match),
+  const struct CMUnitTest tests[] = {
+    cmocka_unit_test(test_prefix_to_path),
+    cmocka_unit_test(test_uri_to_prefix),
+    cmocka_unit_test(test_append_to_prefix),
+    cmocka_unit_test(test_prefix_exact_match),
+    cmocka_unit_test(test_prefix_no_exact_match),
+    cmocka_unit_test(test_prefix_longest_match),
+    cmocka_unit_test(test_prefix_no_longest_match),
   };
  
-  return run_tests(tests);
+  return cmocka_run_group_tests_name("core: prefix tests", tests, NULL, NULL);
 }
