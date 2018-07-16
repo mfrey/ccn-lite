@@ -18,7 +18,7 @@
  *
  */
 
-
+#include "ccnl-content.h"
 #include "ccnl-pkt-builder.h"
 
 #ifdef USE_SUITE_CCNB
