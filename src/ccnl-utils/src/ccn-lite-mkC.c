@@ -41,7 +41,7 @@ main(int argc, char *argv[])
 {
     unsigned char body[64*1024];
     unsigned char out[65*1024];
-    unsigned char *publisher = out;
+    unsigned char* publisher; 
     char *infname = 0, *outfname = 0;
     unsigned int chunknum = UINT_MAX, lastchunknum = UINT_MAX;
     int f, len, opt, plen, offs = 0;
