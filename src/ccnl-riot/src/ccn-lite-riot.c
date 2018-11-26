@@ -198,6 +198,16 @@ ccnl_ll_TX(struct ccnl_relay_s *ccnl, struct ccnl_if_s *ifc,
     int rc;
     DEBUGMSG(TRACE, "ccnl_ll_TX %d bytes to %s\n", (int)(buf ? buf->datalen : -1), ccnl_addr2ascii(dest));
 
+    printf(">>\n");
+    for (ssize_t i = 0; i < buf->datalen; i++) {
+        printf("%02x ", buf->data[i]);
+
+        if (i != 0 && i % 8 == 0) {
+            printf("\n");
+        }
+    }
+    printf("<<\n");
+
     (void) ifc;
     switch(dest->sa.sa_family) {
         /* link layer sending */
